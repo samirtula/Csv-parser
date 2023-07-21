@@ -72,9 +72,10 @@ class CSVParser
         $price = $product[4];
         $nameWithoutSpace = str_replace(' ', '', $name);
 
+
         $size = $this->extractSize($nameWithoutSpace, $name);
 
-        $name = strtoupper(trim($name));
+        $name = str_replace('.0', '', strtoupper(trim($name)));
         $size = str_replace("  ", " ", $size);
 
         return [
@@ -126,6 +127,16 @@ class CSVParser
 
         if ($result === 1) {
             $this->productsNames[] = str_replace('  ', ' ', trim(preg_replace("/\s[S]{2}(\s)?[0-9]{2}/", '', $name)));
+            $size = preg_replace("/[S]{2}/", 'SS ', $found[0]);
+            return true;
+        }
+
+        $reg = "/[S]{2}[0-9]{1}/";
+        $result = preg_match($reg, $nameWithoutSpace, $found);
+
+
+        if ($result === 1) {
+            $this->productsNames[] = str_replace('  ', ' ', trim(preg_replace("/\s[S]{2}(\s)?[0-9]{1}/", '', $name)));
             $size = preg_replace("/[S]{2}/", 'SS ', $found[0]);
             return true;
         }
@@ -299,6 +310,18 @@ class CSVParser
     private function hasSizeSSFormat(string $name, string $productName): bool
     {
         $regex = "/\s[S]{2}(\s)?[0-9]{2}/";
+        $result = preg_match($regex, $name);
+
+        if ($result === 1) {
+            $name = str_replace('  ', ' ', trim(preg_replace($regex, '', $name)));
+
+            if ($name === $productName) {
+                return true;
+            }
+        }
+
+
+        $regex = "/\s[S]{2}(\s)?[0-9]{1}/";
         $result = preg_match($regex, $name);
 
         if ($result === 1) {
